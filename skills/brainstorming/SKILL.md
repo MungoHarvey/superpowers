@@ -26,10 +26,12 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Write design doc** — save location depends on environment:
+   - If Advanced Planning is installed (`.claude/skills/phase-plan-creator/SKILL.md` exists): save to `.claude/plans/YYYY-MM-DD-<topic>-design.md`
+   - Otherwise: save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+9. **Transition to implementation** — invoke phase-plan-creator (if Advanced Planning available) or writing-plans skill
 
 ## Process Flow
 
@@ -45,6 +47,8 @@ digraph brainstorming {
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
+    "Advanced Planning available?" [shape=diamond];
+    "Invoke phase-plan-creator skill" [shape=doublecircle];
     "Invoke writing-plans skill" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
@@ -59,11 +63,17 @@ digraph brainstorming {
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "User reviews spec?" -> "Advanced Planning available?" [label="approved"];
+    "Advanced Planning available?" -> "Invoke phase-plan-creator skill" [label="yes (.claude/skills/phase-plan-creator/SKILL.md exists)"];
+    "Advanced Planning available?" -> "Invoke writing-plans skill" [label="no"];
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**The terminal state depends on what's available:**
+- **If Advanced Planning is installed** (check: `.claude/skills/phase-plan-creator/SKILL.md` exists): invoke **phase-plan-creator** with the design doc path. This feeds your design into hierarchical phase planning.
+- **If Advanced Planning is NOT installed**: invoke **writing-plans** to create an implementation plan (original behaviour).
+
+Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skills you invoke after brainstorming are phase-plan-creator or writing-plans.
 
 ## The Process
 
@@ -108,8 +118,10 @@ digraph brainstorming {
 
 **Documentation:**
 
-- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-  - (User preferences for spec location override this default)
+- Write the validated design (spec) to:
+  - `.claude/plans/YYYY-MM-DD-<topic>-design.md` if Advanced Planning is installed (`.claude/skills/phase-plan-creator/SKILL.md` exists) — this puts the design doc where phase-plan-creator expects it
+  - `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` otherwise (original default)
+  - (User preferences for spec location override both defaults)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
@@ -132,8 +144,10 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 **Implementation:**
 
-- Invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
+- Check if Advanced Planning is available: does `.claude/skills/phase-plan-creator/SKILL.md` exist?
+  - **Yes**: Invoke the **phase-plan-creator** skill with the design doc file path as input. This produces a hierarchical phase plan with success criteria and review gates.
+  - **No**: Invoke the **writing-plans** skill to create a detailed implementation plan (original behaviour).
+- Do NOT invoke any other skill. phase-plan-creator or writing-plans is the next step.
 
 ## Key Principles
 
