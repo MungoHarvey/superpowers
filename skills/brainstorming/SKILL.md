@@ -83,6 +83,7 @@ Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. T
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
+- **Use `AskUserQuestion` tool** for every clarifying question — this gives the user a proper input prompt
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
@@ -97,7 +98,7 @@ Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. T
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
+- Ask after each section whether it looks right so far (use `AskUserQuestion`)
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
 
@@ -148,6 +149,34 @@ Wait for the user's response. If they request changes, make them and re-run the 
   - **Yes**: Invoke the **phase-plan-creator** skill with the design doc file path as input. This produces a hierarchical phase plan with success criteria and review gates.
   - **No**: Invoke the **writing-plans** skill to create a detailed implementation plan (original behaviour).
 - Do NOT invoke any other skill. phase-plan-creator or writing-plans is the next step.
+
+## Asking Questions with AskUserQuestion
+
+When asking the user a question during brainstorming, use the `AskUserQuestion` tool instead of plain text output. This gives the user a proper input prompt and makes it clear you are waiting for their response.
+
+**When to use AskUserQuestion:**
+- Every clarifying question during the brainstorming process
+- Presenting multiple-choice options (A/B/C)
+- Asking for design section approval ("Does this look right?")
+- The visual companion offer
+- The user review gate ("Please review the spec")
+
+**How to use it:**
+- Put your context, reasoning, or presentation in normal text output FIRST
+- Then invoke `AskUserQuestion` with the specific question
+- For multiple choice: include the options in the question text
+- For approvals: phrase as a yes/no with a clear default action
+
+**Example flow:**
+1. Output: "Here are three approaches with trade-offs: [A] ..., [B] ..., [C] ..."
+2. AskUserQuestion: "Which approach do you prefer — A, B, or C? I'd recommend B because..."
+
+**Do NOT use AskUserQuestion for:**
+- Rhetorical questions or transitions
+- Status updates ("I've finished exploring the codebase")
+- When you're about to invoke a skill (just invoke it)
+
+This keeps the conversation interactive and prevents the agent from proceeding without user input at critical decision points.
 
 ## Key Principles
 
